@@ -38,6 +38,7 @@ public class Junction extends Block{
         group = BlockGroup.transportation;
         unloadable = false;
 		configurable = true;
+		configWithInv = true;
     }
 
     @Override

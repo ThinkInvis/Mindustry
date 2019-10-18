@@ -418,6 +418,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             || (frag.config.isShown() && frag.config.getSelectedTile().block().onConfigureTileTapped(frag.config.getSelectedTile(), tile)))){
                 Sounds.click.at(tile);
                 frag.config.showConfig(tile);
+				if(tile.block().configWithInv && tile.block().hasItems && tile.entity.items.total() > 0) {
+					frag.inv.showFor(tile);
+					showedInventory = true;
+				}
             }
             //otherwise...
         }else if(!frag.config.hasConfigMouse()){ //make sure a configuration fragment isn't on the cursor

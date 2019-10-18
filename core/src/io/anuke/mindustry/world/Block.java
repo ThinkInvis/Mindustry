@@ -85,6 +85,8 @@ public class Block extends BlockStorage{
     public TargetPriority priority = TargetPriority.base;
     /** Whether the block can be tapped and selected to configure. */
     public boolean configurable;
+	/** Whether to show block inventory along with the config panel (true), or only the config panel even if items are present and would normally be grabbable (false). */
+	public boolean configWithInv = false;
     /** Whether this block consumes touchDown events when tapped. */
     public boolean consumesTap;
     /**
