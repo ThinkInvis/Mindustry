@@ -3,16 +3,21 @@ package io.anuke.mindustry.world.blocks.distribution;
 import io.anuke.arc.*;
 import io.anuke.arc.collection.*;
 import io.anuke.arc.function.*;
+import io.anuke.arc.graphics.*;
 import io.anuke.arc.graphics.g2d.*;
 import io.anuke.arc.math.*;
 import io.anuke.arc.math.geom.*;
+import io.anuke.arc.scene.ui.*;
+import io.anuke.arc.scene.ui.layout.*;
 import io.anuke.arc.util.*;
+import io.anuke.mindustry.content.*;
 import io.anuke.mindustry.entities.traits.BuilderTrait.*;
 import io.anuke.mindustry.entities.type.*;
 import io.anuke.mindustry.game.*;
 import io.anuke.mindustry.gen.*;
 import io.anuke.mindustry.graphics.*;
 import io.anuke.mindustry.type.*;
+import io.anuke.mindustry.ui.*;
 import io.anuke.mindustry.world.*;
 import io.anuke.mindustry.world.blocks.*;
 import io.anuke.mindustry.world.meta.*;
@@ -43,6 +48,7 @@ public class Conveyor extends Block implements Autotiler{
         layer = Layer.overlay;
         group = BlockGroup.transportation;
         hasItems = true;
+		configurable = true;
         itemCapacity = 4;
 
         idleSound = Sounds.conveyor;
@@ -72,6 +78,12 @@ public class Conveyor extends Block implements Autotiler{
             }
         }
     }
+	
+	@Override
+	public void configured(Tile tile, Player player, int value){
+        ConveyorEntity entity = tile.entity();
+		entity.dirOverride ^= 1 << value;
+	}
 
     @Override
     public void draw(Tile tile){
@@ -81,12 +93,31 @@ public class Conveyor extends Block implements Autotiler{
         int frame = entity.clogHeat <= 0.5f ? (int)(((Time.time() * speed * 8f * entity.timeScale)) % 4) : 0;
         Draw.rect(regions[Mathf.clamp(entity.blendbits, 0, regions.length - 1)][Mathf.clamp(frame, 0, regions[0].length - 1)], tile.drawx(), tile.drawy(),
         tilesize * entity.blendsclx, tilesize * entity.blendscly, rotation * 90);
+		
+		Draw.color(Color.valueOf("884444"));
+		Lines.stroke(1.5f);
+		
+		int ovr = entity.dirOverride;
+		
+		float tsm = (1.5f-tilesize)/2;
+		float tsp = (tilesize-1.5f)/2;
+		
+		if((ovr & 1) == 1) //right
+			Lines.line(tile.drawx()+tsm,tile.drawy()+tsm,tile.drawx()+tsm,tile.drawy()+tsp);
+		if((ovr & 2) == 2) //up
+			Lines.line(tile.drawx()+tsm,tile.drawy()+tsm,tile.drawx()+tsp,tile.drawy()+tsm);
+		if((ovr & 4) == 4) //left
+			Lines.line(tile.drawx()+tsp,tile.drawy()+tsm,tile.drawx()+tsp,tile.drawy()+tsp);
+		if((ovr & 8) == 8) //down
+			Lines.line(tile.drawx()+tsm,tile.drawy()+tsp,tile.drawx()+tsp,tile.drawy()+tsp);
+			
+		Draw.color();
     }
 
     @Override
     public boolean shouldIdleSound(Tile tile){
         ConveyorEntity entity = tile.entity();
-        return entity.clogHeat <= 0.5f ;
+        return entity.clogHeat <= 0.5f;
     }
 
     @Override
@@ -112,7 +143,7 @@ public class Conveyor extends Block implements Autotiler{
 
     @Override
     public boolean blends(Tile tile, int rotation, int otherx, int othery, int otherrot, Block otherblock){
-        return otherblock.outputsItems() && lookingAt(tile, rotation, otherx, othery, otherrot, otherblock);
+		return otherblock.outputsItems() && lookingAt(tile, rotation, otherx, othery, otherrot, otherblock);
     }
 
     @Override
@@ -300,6 +331,12 @@ public class Conveyor extends Block implements Autotiler{
     public boolean acceptItem(Item item, Tile tile, Tile source){
         int direction = source == null ? 0 : Math.abs(source.relativeTo(tile.x, tile.y) - tile.rotation());
         float minitem = tile.<ConveyorEntity>entity().minitem;
+		int ovr = tile.<ConveyorEntity>entity().dirOverride;
+		if(source != null) {
+			int ndir = (source.relativeTo(tile.x, tile.y) + 4) % 4;
+			int flag = 1 << ndir;
+			if((ovr & flag) == flag) return false;
+		}
         return (((direction == 0) && minitem > itemSpace) ||
         ((direction % 2 == 1) && minitem > 0.52f)) && (source == null || !(source.block().rotate && (source.rotation() + 2) % 4 == tile.rotation()));
     }
@@ -333,12 +370,32 @@ public class Conveyor extends Block implements Autotiler{
         entity.lastInserted = (byte)(entity.convey.size - 1);
     }
 
+	@Override
+	public void buildTable(Tile tile, Table table){
+		ConveyorEntity entity = tile.entity();
+		
+        ButtonGroup<ImageButton> group = new ButtonGroup<>();
+        Table buttons = new Table();
+
+		buttons.addImageButton(Core.atlas.drawable("icon-arrow-right-small"), Styles.clearToggleTransi, () -> tile.configure(0))
+		.size(44).update(b -> b.setChecked((entity.dirOverride & 1) == 1));
+		buttons.addImageButton(Core.atlas.drawable("icon-arrow-up-small"), Styles.clearToggleTransi, () -> tile.configure(1))
+		.size(44).update(b -> b.setChecked((entity.dirOverride & 2) == 2));
+		buttons.addImageButton(Core.atlas.drawable("icon-arrow-left-small"), Styles.clearToggleTransi, () -> tile.configure(2))
+		.size(44).update(b -> b.setChecked((entity.dirOverride & 4) == 4));
+		buttons.addImageButton(Core.atlas.drawable("icon-arrow-down-small"), Styles.clearToggleTransi, () -> tile.configure(3))
+		.size(44).update(b -> b.setChecked((entity.dirOverride & 8) == 8));
+			
+        table.add(buttons);
+	}
+
     @Override
     public TileEntity newEntity(){
         return new ConveyorEntity();
     }
 
     public static class ConveyorEntity extends TileEntity{
+		int dirOverride = 0;
 
         LongArray convey = new LongArray();
         byte lastInserted;
@@ -349,9 +406,15 @@ public class Conveyor extends Block implements Autotiler{
 
         float clogHeat = 0f;
 
+		@Override
+		public int config(){
+			return dirOverride;
+		}
+
         @Override
         public void write(DataOutput stream) throws IOException{
             super.write(stream);
+			stream.writeShort(dirOverride);
             stream.writeInt(convey.size);
 
             for(int i = 0; i < convey.size; i++){
@@ -363,6 +426,7 @@ public class Conveyor extends Block implements Autotiler{
         public void read(DataInput stream, byte revision) throws IOException{
             super.read(stream, revision);
             convey.clear();
+			dirOverride = stream.readShort();
             int amount = stream.readInt();
             convey.ensureCapacity(Math.min(amount, 10));
 
