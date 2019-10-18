@@ -373,20 +373,7 @@ public class Conveyor extends Block implements Autotiler{
 	@Override
 	public void buildTable(Tile tile, Table table){
 		ConveyorEntity entity = tile.entity();
-		
-        ButtonGroup<ImageButton> group = new ButtonGroup<>();
-        Table buttons = new Table();
-
-		buttons.addImageButton(Core.atlas.drawable("icon-arrow-right-small"), Styles.clearToggleTransi, () -> tile.configure(0))
-		.size(44).update(b -> b.setChecked((entity.dirOverride & 1) == 1));
-		buttons.addImageButton(Core.atlas.drawable("icon-arrow-up-small"), Styles.clearToggleTransi, () -> tile.configure(1))
-		.size(44).update(b -> b.setChecked((entity.dirOverride & 2) == 2));
-		buttons.addImageButton(Core.atlas.drawable("icon-arrow-left-small"), Styles.clearToggleTransi, () -> tile.configure(2))
-		.size(44).update(b -> b.setChecked((entity.dirOverride & 4) == 4));
-		buttons.addImageButton(Core.atlas.drawable("icon-arrow-down-small"), Styles.clearToggleTransi, () -> tile.configure(3))
-		.size(44).update(b -> b.setChecked((entity.dirOverride & 8) == 8));
-			
-        table.add(buttons);
+		DirSelection.buildDirOvrTable(table, tile, entity.dirOverride);
 	}
 
     @Override
