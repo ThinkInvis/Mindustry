@@ -136,6 +136,29 @@ public class Units{
 
         return result;
     }
+	
+    /** Returns the enemy of this team that is farthest from a certain ideal distance. Filter by predicate. */
+	//dofs offsets distance to represent an ideal range (enemies closer than this range start losing, instead of gaining, priority as they get closer to the turret) -- used for e.g. tether turret
+    public static Unit farthestEnemy(Team team, float x, float y, float range, Predicate<Unit> predicate, float dofs){
+        if(team == Team.derelict) return null;
+
+        result = null;
+        cdist = 0;
+
+        nearbyEnemies(team, x - range, y - range, range*2f, range*2f, e -> {
+            if(e.isDead() || !predicate.test(e)) return;
+
+            float dst2 = Mathf.dst2(e.x, e.y, x, y);
+            float adist = Math.abs(dst2-dofs);
+			//float adist = Mathf.sqrt((x-e.x)*(x-e.x)+(y-e.y)*(y-e.y)-dofs);
+            if(dst2 < range*range && (result == null || adist > cdist)){
+                result = e;
+                cdist = adist;
+            }
+        });
+
+        return result;
+    }
 
     /** Returns the closest ally of this team. Filter by predicate. */
     public static Unit closest(Team team, float x, float y, float range, Predicate<Unit> predicate){

@@ -86,6 +86,10 @@ public class TechTree implements ContentList{
                         });
 
                         node(lancer, () -> {
+                            node(tether, () -> {
+
+                            });
+							
                             node(meltdown, () -> {
 
                             });
