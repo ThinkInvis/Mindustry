@@ -1629,18 +1629,9 @@ public class Blocks implements ContentList{
 
         tether = new TetherTurret("tether"){{
             requirements(Category.turret, ItemStack.with(Items.copper, 200, Items.lead, 300, Items.graphite, 200, Items.silicon, 200));
-            shootType = Bullets.tetherLaser;
-            shootEffect = Fx.shootBigSmoke2;
-            shootCone = 40f;
-            recoil = 2f;
             size = 3;
-            shootShake = 0.2f;
             range = 500f;
-            reload = 50f;
-            firingMoveFract = 0.1f;
-			rotatespeed = 30f;
             powerUse = 2f;
-            shootSound = Sounds.laser;
             activeSound = Sounds.beam;
             activeSoundVolume = 0.1f;
 
