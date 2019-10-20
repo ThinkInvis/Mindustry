@@ -43,7 +43,7 @@ public class TetherTurret extends Block{
 	protected float minPowerThresh = 0.1f;
 	protected float rotatePerTarget = 2f;
     protected boolean targetAir = true;
-    protected boolean targetGround = true;
+    protected boolean targetGround = false;
 
     protected TextureRegion baseRegion, laser, laserEnd;
 	
