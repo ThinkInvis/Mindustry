@@ -17,11 +17,11 @@ import io.anuke.arc.scene.ui.layout.*;
 import io.anuke.arc.util.*;
 import io.anuke.arc.util.ArcAnnotate.*;
 import io.anuke.arc.util.pooling.*;
+import io.anuke.mindustry.ctype.*;
 import io.anuke.mindustry.entities.*;
 import io.anuke.mindustry.entities.effect.*;
 import io.anuke.mindustry.entities.traits.BuilderTrait.*;
 import io.anuke.mindustry.entities.type.*;
-import io.anuke.mindustry.game.*;
 import io.anuke.mindustry.gen.*;
 import io.anuke.mindustry.graphics.*;
 import io.anuke.mindustry.type.*;
@@ -89,6 +89,8 @@ public class Block extends BlockStorage{
 	public boolean configWithInv = false;
     /** Whether this block consumes touchDown events when tapped. */
     public boolean consumesTap;
+    /** Whether the config is positional and needs to be shifted. */
+    public boolean posConfig;
     /**
      * The color of this block when displayed on the minimap or map preview.
      * Do not set manually! This is overriden when loading for most blocks.
@@ -118,7 +120,7 @@ public class Block extends BlockStorage{
     public float idleSoundVolume = 0.5f;
 
     /** Cost of constructing this block. */
-    public ItemStack[] requirements = new ItemStack[]{};
+    public ItemStack[] requirements = {};
     /** Category in place menu. */
     public Category category = Category.distribution;
     /** Cost of building this block; do not modify directly! */
@@ -683,8 +685,32 @@ public class Block extends BlockStorage{
     public void drawRequestRegion(BuildRequest req, Eachable<BuildRequest> list){
         TextureRegion reg = icon(Cicon.full);
         Draw.rect(icon(Cicon.full), req.drawx(), req.drawy(),
-            reg.getWidth() * req.animScale * Draw.scl, reg.getHeight() * req.animScale * Draw.scl,
-                !rotate ? 0 : req.rotation * 90);
+            reg.getWidth() * req.animScale * Draw.scl,
+            reg.getHeight() * req.animScale * Draw.scl,
+            !rotate ? 0 : req.rotation * 90);
+
+        if(req.hasConfig){
+            drawRequestConfig(req, list);
+        }
+    }
+
+    public void drawRequestConfig(BuildRequest req, Eachable<BuildRequest> list){
+
+    }
+
+    public void drawRequestConfigCenter(BuildRequest req, Content content, String region){
+        Color color = content instanceof Item ? ((Item)content).color : content instanceof Liquid ? ((Liquid)content).color : null;
+        if(color == null) return;
+
+        Draw.color(color);
+        Draw.scl *= req.animScale;
+        Draw.rect(region, req.drawx(), req.drawy());
+        Draw.scl /= req.animScale;
+        Draw.color();
+    }
+
+    public void drawRequestConfigTop(BuildRequest req, Eachable<BuildRequest> list){
+
     }
 
     @Override
