@@ -3,7 +3,6 @@ package io.anuke.mindustry.world.blocks.distribution;
 import io.anuke.arc.*;
 import io.anuke.arc.collection.*;
 import io.anuke.arc.collection.IntSet.*;
-import io.anuke.arc.function.*;
 import io.anuke.arc.graphics.*;
 import io.anuke.arc.graphics.g2d.*;
 import io.anuke.arc.math.*;
@@ -197,7 +196,7 @@ public class ItemBridge extends Block{
             entity.uptime = 0f;
         }else{
 
-            if(entity.cons.valid() && (!hasPower || Mathf.isZero(1f - entity.power.satisfaction))){
+            if(entity.cons.valid() && (!hasPower || Mathf.zero(1f - entity.power.satisfaction))){
                 entity.uptime = Mathf.lerpDelta(entity.uptime, 1f, 0.04f);
             }else{
                 entity.uptime = Mathf.lerpDelta(entity.uptime, 0f, 0.02f);

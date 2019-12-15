@@ -21,15 +21,21 @@ public class ModsDialog extends FloatingDialog{
         super("$mods");
         addCloseButton();
 
-        buttons.addImageTextButton("$mods.report", Icon.link,
-        () -> Core.net.openURI(reportIssueURL))
+        buttons.addImageTextButton(mobile ? "$mods.report" : "$mods.openfolder", Icon.link,
+        () -> {
+            if(mobile){
+                Core.net.openURI(reportIssueURL);
+            }else{
+                Core.net.openFolder(modDirectory.absolutePath());
+            }
+        })
         .size(250f, 64f);
 
         buttons.row();
 
         buttons.addImageTextButton("$mods.guide", Icon.wiki,
         () -> Core.net.openURI(modGuideURL))
-        .size(210f, 64f);
+        .size(210, 64f);
 
         buttons.addImageTextButton("$mod.import.github", Icon.github, () -> {
             ui.showTextInput("$mod.import.github", "", 64, "Anuken/ExampleMod", text -> {
@@ -55,19 +61,25 @@ public class ModsDialog extends FloatingDialog{
                                     }
                                 });
                             }catch(Throwable e){
-                                ui.showException(e);
+                                modError(e);
                             }
                         }
-                    }, t -> Core.app.post(() -> ui.showException(t)));
-                }, t -> Core.app.post(() -> ui.showException(t)));
+                    }, t -> Core.app.post(() -> modError(t)));
+                }, t -> Core.app.post(() -> modError(t)));
             });
         }).size(250f, 64f);
+
 
         shown(this::setup);
 
         hidden(() -> {
             if(mods.requiresReload()){
                 ui.loadAnd("$reloading", () -> {
+                    mods.all().each(mod -> {
+                        if(mod.hasUnmetDependencies()){
+                            ui.showErrorMessage(Core.bundle.format("mod.nowdisabled", mod.name, mod.missingDependencies.toString(", ")));
+                        }
+                    });
                     mods.reloadContent();
                 });
             }
@@ -80,9 +92,19 @@ public class ModsDialog extends FloatingDialog{
         }));
     }
 
+    void modError(Throwable error){
+        ui.loadfrag.hide();
+
+        if(Strings.getCauses(error).contains(t -> t.getMessage() != null && (t.getMessage().contains("SSL") || t.getMessage().contains("protocol")))){
+            ui.showErrorMessage("$feature.unsupported");
+        }else{
+            ui.showException(error);
+        }
+    }
+
     void setup(){
         cont.clear();
-        cont.defaults().width(520f).pad(4);
+        cont.defaults().width(mobile ? 500 : 560f).pad(4);
         cont.add("$mod.reloadrequired").visible(mods::requiresReload).center().get().setAlignment(Align.center);
         cont.row();
         if(!(mods.all().isEmpty() && mods.disabled().isEmpty())){
@@ -104,7 +126,7 @@ public class ModsDialog extends FloatingDialog{
                         t.margin(14f).left();
                         t.table(title -> {
                             title.left();
-                            title.add("[accent]" + mod.meta.name + "[lightgray] v" + mod.meta.version + (" | " + Core.bundle.get(mod.enabled() ? "mod.enabled" : "mod.disabled"))).width(270f).wrap();
+                            title.add("[accent]" + mod.meta.name + "[lightgray] v" + mod.meta.version + (mod.enabled() ? "" : "\n" + Core.bundle.get("mod.disabled") + "")).width(200f).wrap();
                             title.add().growX();
 
                             title.addImageTextButton(mod.enabled() ? "$mod.disable" : "$mod.enable", mod.enabled() ? Icon.arrowDownSmall : Icon.arrowUpSmall, Styles.cleart, () -> {
@@ -139,8 +161,11 @@ public class ModsDialog extends FloatingDialog{
                             t.labelWrap("[lightgray]" + mod.meta.description).growX();
                             t.row();
                         }
-
-                    }).width(500f);
+                        if(mod.hasUnmetDependencies()){
+                            t.labelWrap(Core.bundle.format("mod.missingdependencies", mod.missingDependencies.toString(", "))).growX();
+                            t.row();
+                        }
+                    }).width(mobile ? 430f : 500f);
                     table.row();
                 }
             });

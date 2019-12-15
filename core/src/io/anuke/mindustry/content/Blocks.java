@@ -52,7 +52,7 @@ public class Blocks implements ContentList{
 
     //defense
     scrapWall, scrapWallLarge, scrapWallHuge, scrapWallGigantic, thruster, //ok, these names are getting ridiculous, but at least I don't have humongous walls yet
-    copperWall, copperWallLarge, titaniumWall, titaniumWallLarge, thoriumWall, thoriumWallLarge, door, doorLarge,
+    copperWall, copperWallLarge, titaniumWall, titaniumWallLarge, plastaniumWall, plastaniumWallLarge, thoriumWall, thoriumWallLarge, door, doorLarge,
     phaseWall, phaseWallLarge, surgeWall, surgeWallLarge, mender, mendProjector, overdriveProjector, forceProjector, shockMine,
 
     //transport
@@ -63,7 +63,7 @@ public class Blocks implements ContentList{
 
     //power
     combustionGenerator, thermalGenerator, turbineGenerator, differentialGenerator, rtgGenerator, solarPanel, largeSolarPanel, thoriumReactor,
-    impactReactor, battery, batteryLarge, powerNode, powerNodeLarge, surgeTower,
+    impactReactor, battery, batteryLarge, powerNode, powerNodeLarge, surgeTower, diode,
 
     //production
     mechanicalDrill, pneumaticDrill, laserDrill, blastDrill, waterExtractor, oilExtractor, cultivator,
@@ -795,6 +795,19 @@ public class Blocks implements ContentList{
             size = 2;
         }};
 
+        plastaniumWall = new Wall("plastanium-wall"){{
+            requirements(Category.defense, ItemStack.with(Items.plastanium, 5, Items.metaglass, 2));
+            health = 190 * wallHealthMultiplier;
+            insulated = true;
+        }};
+
+        plastaniumWallLarge = new Wall("plastanium-wall-large"){{
+            requirements(Category.defense, ItemStack.mult(plastaniumWall.requirements, 4));
+            health = 190 * wallHealthMultiplier * 4;
+            size = 2;
+            insulated = true;
+        }};
+
         thoriumWall = new Wall("thorium-wall"){{
             requirements(Category.defense, ItemStack.with(Items.thorium, 6));
             health = 200 * wallHealthMultiplier;
@@ -1050,6 +1063,10 @@ public class Blocks implements ContentList{
             size = 2;
             maxNodes = 2;
             laserRange = 30f;
+        }};
+
+        diode = new PowerDiode("diode"){{
+            requirements(Category.power, ItemStack.with(Items.silicon, 10, Items.plastanium, 5, Items.metaglass, 10));
         }};
 
         battery = new Battery("battery"){{
